@@ -23,21 +23,17 @@ fn main () -> io::Result<()> {
 
     let mut done = false;
     while !done {
-        let mut found = false;
+        done = true;
         let mut i = 1;
 
         while i < units.len() {
             if reacts_with(units.get(i).unwrap(), units.get(i - 1).unwrap()) {
                 units.remove(i - 1);
                 units.remove(i - 1);
-                found = true;
+                done = false;
             } else {
                 i += 1;
             }
-        }
-
-        if found == false {
-            done = true;
         }
     }
 
