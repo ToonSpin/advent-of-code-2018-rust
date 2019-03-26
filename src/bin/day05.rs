@@ -27,10 +27,6 @@ fn react(units: Vec<u8>) -> usize {
     reacted.len()
 }
 
-fn strip_unit(units: Vec<u8>, unit: &u8) -> Vec<u8> {
-    units.into_iter().filter(|u| *u != *unit && *u != *unit + 32).collect()
-}
-
 fn main () -> io::Result<()> {
     let mut input = String::new();
     io::stdin().lock().read_to_string(&mut input)?;
@@ -41,7 +37,8 @@ fn main () -> io::Result<()> {
     println!("Length after reaction: {}", react(Vec::from(units.clone())));
 
     for unit in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".as_bytes() {
-        let stripped = strip_unit(Vec::from(units.clone()), unit);
+        let mut stripped = Vec::from(units.clone());
+        stripped.retain(|u| *u != *unit && *u != *unit + 32);
         println!("Length after reaction after stripping {}: {}", *unit as char, react(stripped));
     }
 
