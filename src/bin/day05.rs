@@ -1,53 +1,34 @@
 use std::io;
 use std::io::prelude::*;
 
-use std::collections::VecDeque;
-
 fn reacts_with(a:&u8, b:&u8) -> bool {
-    if a < b && b - a == 32 {
-        return true;
+    if a < b {
+        return b - a == 32;
     }
-    if b < a && a - b == 32 {
-        return true;
-    }
-    false
+    a - b == 32
 }
 
-fn react(mut units: Vec<u8>) -> usize {
-    loop {
-        let mut done = true;
-        let mut i = 1;
-
-        while i < units.len() {
-            if reacts_with(units.get(i).unwrap(), units.get(i - 1).unwrap()) {
-                units.remove(i - 1);
-                units.remove(i - 1);
-                done = false;
-            } else {
-                i += 1;
-            }
-        }
-
-        if done {
-            return units.len();
-        }
-    }
-}
-
-fn strip_unit(mut units: Vec<u8>, unit: &u8) -> Vec<u8> {
-    let mut i = 0;
-    loop {
-        match units.get(i) {
-            Some(u) => {
-                if *u == *unit || *u == unit + 32 {
-                    units.remove(i);
+fn react(units: Vec<u8>) -> usize {
+    let mut reacted: Vec<u8> = Vec::new();
+    for unit in units.iter() {
+        match reacted.last() {
+            Some(prev_unit) => {
+                if reacts_with(prev_unit, unit) {
+                    reacted.pop();
                 } else {
-                    i += 1;
+                    reacted.push(*unit);
                 }
             },
-            None => { return units; },
+            None => {
+                reacted.push(*unit);
+            }
         }
     }
+    reacted.len()
+}
+
+fn strip_unit(units: Vec<u8>, unit: &u8) -> Vec<u8> {
+    units.into_iter().filter(|u| *u != *unit && *u != *unit + 32).collect()
 }
 
 fn main () -> io::Result<()> {
