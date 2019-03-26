@@ -2,31 +2,26 @@ use std::io;
 use std::io::prelude::*;
 
 use std::collections::HashSet;
-use std::collections::LinkedList;
 
 fn main() {
-    let mut sum: i32 = 0;
-    let mut freqs: LinkedList<i32> = LinkedList::new();
-    let mut found_freqs: HashSet<i32> = HashSet::new();
-    let mut done: bool = false;
+    let mut freqs = Vec::new();
+    let mut found_freqs: HashSet<i32> = HashSet::with_capacity(150000);
 
     for line in io::stdin().lock().lines() {
         let freq = line.unwrap().parse::<i32>().unwrap();
-        sum += freq;
-        freqs.push_back(freq);
+        freqs.push(freq);
     }
-    println!("Sum of frequency changes: {}", sum);
+    println!("Sum of frequency changes: {}", freqs.iter().fold(0, |sum, val| sum + val));
 
-    sum = 0;
+    let mut sum = 0;
     found_freqs.insert(sum);
-    while !done {
+    'calibrating:
+    loop {
         for freq in freqs.iter() {
             sum += freq;
-            if found_freqs.contains(&sum) {
-                done = true;
-                break;
+            if !found_freqs.insert(sum) {
+                break 'calibrating;
             }
-            found_freqs.insert(sum);
         }
     }
     println!("First frequency to appear twice: {}", sum);
