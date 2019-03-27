@@ -2,22 +2,23 @@ use std::io;
 use std::io::prelude::*;
 
 use std::collections::HashMap;
-use std::collections::VecDeque;
 
-fn box_id_diff(a: &String, b: &String) -> i32 {
+fn boxes_match(a: &String, b: &String) -> bool {
     let a = a.as_bytes();
     let b = b.as_bytes();
 
-    let length: usize = a.len();
-    let mut diff: i32 = 0;
+    let mut found = false;
 
-    for i in 0..length {
+    for i in 0..a.len() {
         if a[i] != b[i] {
-            diff += 1;
+            if found {
+                return false;
+            }
+            found = true;
         }
     }
 
-    diff
+    true
 }
 
 fn common_bytes(a: &String, b: &String) -> String {
@@ -35,7 +36,7 @@ fn common_bytes(a: &String, b: &String) -> String {
     result
 }
 
-fn checksum(box_ids: &VecDeque<String>) -> u32 {
+fn checksum(box_ids: &Vec<String>) -> u32 {
     let mut two_found_count: u32 = 0;
     let mut three_found_count: u32 = 0;
 
@@ -79,23 +80,22 @@ fn checksum(box_ids: &VecDeque<String>) -> u32 {
 }
 
 fn main() {
-    let mut box_ids: VecDeque<String> = VecDeque::new();
+    let mut box_ids: Vec<String> = Vec::new();
 
     for line in io::stdin().lock().lines() {
         let box_id = line.unwrap();
-        box_ids.push_back(box_id.clone());
+        box_ids.push(box_id);
     }
 
     let length = box_ids.len();
     let mut common_chars = String::new();
 
     'find_correct_boxes:
-    for i in 0..length {
+    for (i, a) in box_ids.iter().enumerate() {
         for j in (i + 1)..length {
-            let a = box_ids.get(i).unwrap();
             let b = box_ids.get(j).unwrap();
 
-            if box_id_diff(a, b) == 1 {
+            if boxes_match(a, b) {
                 common_chars = common_bytes(a, b);
                 break 'find_correct_boxes;
             }
