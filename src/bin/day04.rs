@@ -1,10 +1,9 @@
 use std::io;
 use std::io::prelude::*;
 
-use std::vec::Vec;
 use std::collections::HashMap;
 
-struct Nap (u32, u32);
+struct Nap(u32, u32);
 
 struct Guard {
     naps: Vec<Nap>,
@@ -35,9 +34,7 @@ impl Guard {
     }
 
     fn new() -> Guard {
-        Guard {
-            naps: Vec::new()
-        }
+        Guard { naps: Vec::new() }
     }
 }
 
@@ -57,17 +54,20 @@ fn main() {
             'G' => {
                 current_guard = line[26..].split(' ').next().unwrap().parse().unwrap();
                 naps.entry(current_guard).or_insert(Guard::new());
-            },
+            }
             'f' => {
                 falls_asleep = line[15..17].parse().unwrap();
-            },
+            }
             'w' => {
                 let wakes_up = line[15..17].parse().unwrap();
-                naps.get_mut(&current_guard).unwrap().naps.push(Nap (falls_asleep, wakes_up));
-            },
+                naps.get_mut(&current_guard)
+                    .unwrap()
+                    .naps
+                    .push(Nap(falls_asleep, wakes_up));
+            }
             _ => {
                 panic!("Character not expected");
-            },
+            }
         }
     }
 
@@ -92,9 +92,16 @@ fn main() {
         }
     }
 
-    let (sleepiest_minute_total, _nap_count) = naps.get(&sleepiest_guard_total).unwrap().sleepiest_minute();
+    let (sleepiest_minute_total, _nap_count) =
+        naps.get(&sleepiest_guard_total).unwrap().sleepiest_minute();
 
-    println!("Sleepiest minute times ID of sleepiest guard: {}", sleepiest_guard_total * sleepiest_minute_total);
+    println!(
+        "Sleepiest minute times ID of sleepiest guard: {}",
+        sleepiest_guard_total * sleepiest_minute_total
+    );
 
-    println!("Sleepiest minute times ID of most regularly asleep guard: {}", sleepiest_guard_minute * sleepiest_minute);
+    println!(
+        "Sleepiest minute times ID of most regularly asleep guard: {}",
+        sleepiest_guard_minute * sleepiest_minute
+    );
 }

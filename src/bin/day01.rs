@@ -11,12 +11,14 @@ fn main() {
         let freq = line.unwrap().parse::<i32>().unwrap();
         freqs.push(freq);
     }
-    println!("Sum of frequency changes: {}", freqs.iter().fold(0, |sum, val| sum + val));
+    println!(
+        "Sum of frequency changes: {}",
+        freqs.iter().fold(0, |sum, val| sum + val)
+    );
 
     let mut sum = 0;
     found_freqs.insert(sum);
-    'calibrating:
-    loop {
+    'calibrating: loop {
         for freq in freqs.iter() {
             sum += freq;
             if !found_freqs.insert(sum) {

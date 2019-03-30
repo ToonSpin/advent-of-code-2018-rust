@@ -48,10 +48,10 @@ fn checksum(box_ids: &Vec<String>) -> u32 {
 
         for character in box_id.as_bytes() {
             match char_counts.insert(character, 1) {
-                None => {},
+                None => {}
                 Some(count) => {
                     char_counts.insert(character, count + 1);
-                },
+                }
             };
         }
 
@@ -90,8 +90,7 @@ fn main() {
     let length = box_ids.len();
     let mut common_chars = String::new();
 
-    'find_correct_boxes:
-    for (i, a) in box_ids.iter().enumerate() {
+    'find_correct_boxes: for (i, a) in box_ids.iter().enumerate() {
         for j in (i + 1)..length {
             let b = box_ids.get(j).unwrap();
 

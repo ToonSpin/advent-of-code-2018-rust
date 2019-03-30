@@ -1,8 +1,9 @@
 use std::io;
 use std::io::prelude::*;
-use std::cmp::Ordering;
-use std::cmp::min;
+
 use std::cmp::max;
+use std::cmp::min;
+use std::cmp::Ordering;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -25,10 +26,16 @@ impl Point {
         (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0) > 0
     }
 
-    fn convex_hull(input:&Vec<Point>) -> HashSet<Point> {
+    fn convex_hull(input: &Vec<Point>) -> HashSet<Point> {
         let mut input = input.clone();
 
-        input.sort_by(|p, q| return if p.0 == q.0 { p.1.cmp(&q.1) } else { p.0.cmp(&q.0) });
+        input.sort_by(|p, q| {
+            return if p.0 == q.0 {
+                p.1.cmp(&q.1)
+            } else {
+                p.0.cmp(&q.0)
+            };
+        });
 
         let origin_x = input[0].0;
         let origin_y = input[0].1;
@@ -38,7 +45,7 @@ impl Point {
             input[i].1 -= origin_y;
         }
 
-       let compare_points = |a: &Point, b: &Point| -> Ordering {
+        let compare_points = |a: &Point, b: &Point| -> Ordering {
             if (a.0 > 0 && b.0 > 0) || (a.0 < 0 && b.0 < 0) {
                 return (a.1 * b.0).cmp(&(b.1 * a.0));
             } else {
@@ -62,18 +69,22 @@ impl Point {
 
         for p in input_iter {
             ch.push(p);
-            while ch.len() >= 3 && !Point::left_turn(&ch[ch.len() - 3], &ch[ch.len() - 2], &ch[ch.len() - 1]) {
+            while ch.len() >= 3
+                && !Point::left_turn(&ch[ch.len() - 3], &ch[ch.len() - 2], &ch[ch.len() - 1])
+            {
                 ch.swap_remove(ch.len() - 2);
             }
         }
 
-        ch.iter().map(|p| Point(p.0 + origin_x, p.1 + origin_y)).collect()
+        ch.iter()
+            .map(|p| Point(p.0 + origin_x, p.1 + origin_y))
+            .collect()
     }
 }
 
-fn main () -> io::Result<()> {
-    let mut input:Vec<Point> = Vec::new();
-    let mut areas: HashMap<Point,i32> = HashMap::new();
+fn main() -> io::Result<()> {
+    let mut input: Vec<Point> = Vec::new();
+    let mut areas: HashMap<Point, i32> = HashMap::new();
 
     let mut min_x: i32 = 10000;
     let mut max_x: i32 = 0;
@@ -133,17 +144,23 @@ fn main () -> io::Result<()> {
                             let area = areas.entry(p).or_insert(0);
                             *area += 1;
                         }
-                    },
+                    }
                     None => {
                         panic!("No minimum distance found. Is input empty?");
-                    },
+                    }
                 }
             }
         }
     }
 
-    println!("Size of the largest area that isn't infinite: {}", areas.values().max().unwrap());
-    println!("Size of region with total distance below {}: {}", threshold, near_distance_count);
+    println!(
+        "Size of the largest area that isn't infinite: {}",
+        areas.values().max().unwrap()
+    );
+    println!(
+        "Size of region with total distance below {}: {}",
+        threshold, near_distance_count
+    );
 
     Ok(())
 }

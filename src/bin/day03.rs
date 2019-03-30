@@ -1,8 +1,8 @@
-extern crate regex;
-use regex::Regex;
-
 use std::io;
 use std::io::prelude::*;
+
+extern crate regex;
+use regex::Regex;
 
 use std::collections::VecDeque;
 
@@ -14,7 +14,7 @@ struct Claim {
     h: u32,
 }
 
-fn number_of_claims(x:u32, y:u32, claims:&VecDeque<Claim>) -> u32 {
+fn number_of_claims(x: u32, y: u32, claims: &VecDeque<Claim>) -> u32 {
     let mut count = 0;
     for claim in claims.iter() {
         if y >= claim.y && y < claim.y + claim.h {
@@ -33,7 +33,6 @@ fn main() {
     let re = Regex::new(r"^#(\d+) @ (\d+),(\d+): (\d+)x(\d+)$").unwrap();
     for line in io::stdin().lock().lines() {
         if let Some(caps) = re.captures(line.unwrap().as_str()) {
-
             claims.push_back(Claim {
                 id: caps[1].parse().unwrap(),
                 x: caps[2].parse().unwrap(),
@@ -63,8 +62,7 @@ fn main() {
 
     println!("Number of squares with more than one claim: {}", count);
 
-    'claim_check:
-    for claim in claims.iter() {
+    'claim_check: for claim in claims.iter() {
         for y in claim.y..(claim.y + claim.h) {
             for x in claim.x..(claim.x + claim.w) {
                 if number_of_claims(x, y, &claims) > 1 {

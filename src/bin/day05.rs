@@ -1,7 +1,7 @@
 use std::io;
 use std::io::prelude::*;
 
-fn reacts_with(a:&u8, b:&u8) -> bool {
+fn reacts_with(a: &u8, b: &u8) -> bool {
     if a < b {
         return b - a == 32;
     }
@@ -18,7 +18,7 @@ fn react(units: Vec<u8>) -> usize {
                 } else {
                     reacted.push(*unit);
                 }
-            },
+            }
             None => {
                 reacted.push(*unit);
             }
@@ -27,7 +27,7 @@ fn react(units: Vec<u8>) -> usize {
     reacted.len()
 }
 
-fn main () -> io::Result<()> {
+fn main() -> io::Result<()> {
     let mut input = String::new();
     io::stdin().lock().read_to_string(&mut input)?;
     let input = input.trim();
@@ -39,7 +39,11 @@ fn main () -> io::Result<()> {
     for unit in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".as_bytes() {
         let mut stripped = Vec::from(units.clone());
         stripped.retain(|u| *u != *unit && *u != *unit + 32);
-        println!("Length after reaction after stripping {}: {}", *unit as char, react(stripped));
+        println!(
+            "Length after reaction after stripping {}: {}",
+            *unit as char,
+            react(stripped)
+        );
     }
 
     Ok(())
