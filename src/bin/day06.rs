@@ -9,65 +9,66 @@ use std::collections::HashSet;
 
 #[derive(Clone, Hash, Eq)]
 struct Point(i32, i32);
+
 impl PartialEq for Point {
     fn eq(&self, other: &Point) -> bool {
         self.0 == other.0 && self.1 == other.1
     }
 }
+
 impl Point {
-    fn dist(&self, x: i32, y: i32) -> i32{
-        let dist:i32 = if self.0 > x {self.0 - x} else {x - self.0};
-        dist + if self.1 > y {self.1 - y} else {y - self.1}
-    }
-}
-
-fn left_turn(a: &Point, b: &Point, c: &Point) -> bool {
-    (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0) > 0
-}
-
-fn convex_hull(input:&Vec<Point>) -> HashSet<Point> {
-    let mut input = input.clone();
-
-    input.sort_by(|p, q| return if p.0 == q.0 { p.1.cmp(&q.1) } else { p.0.cmp(&q.0) });
-
-    let origin_x = input[0].0;
-    let origin_y = input[0].1;
-
-    for i in 0..input.len() {
-        input[i].0 -= origin_x;
-        input[i].1 -= origin_y;
+    fn dist(&self, x: i32, y: i32) -> i32 {
+        (self.0 - x).abs() + (self.1 - y).abs()
     }
 
-   let compare_points = |a: &Point, b: &Point| -> Ordering {
-        if (a.0 > 0 && b.0 > 0) || (a.0 < 0 && b.0 < 0) {
-            return (a.1 * b.0).cmp(&(b.1 * a.0));
-        } else {
-            if a.1 == 0 {
-                return Ordering::Less;
-            }
-            if b.1 == 0 {
-                return Ordering::Greater;
-            }
-            return b.0.cmp(&a.0);
+    fn left_turn(a: &Point, b: &Point, c: &Point) -> bool {
+        (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0) > 0
+    }
+
+    fn convex_hull(input:&Vec<Point>) -> HashSet<Point> {
+        let mut input = input.clone();
+
+        input.sort_by(|p, q| return if p.0 == q.0 { p.1.cmp(&q.1) } else { p.0.cmp(&q.0) });
+
+        let origin_x = input[0].0;
+        let origin_y = input[0].1;
+
+        for i in 0..input.len() {
+            input[i].0 -= origin_x;
+            input[i].1 -= origin_y;
         }
-    };
 
-    input.sort_by(compare_points);
+       let compare_points = |a: &Point, b: &Point| -> Ordering {
+            if (a.0 > 0 && b.0 > 0) || (a.0 < 0 && b.0 < 0) {
+                return (a.1 * b.0).cmp(&(b.1 * a.0));
+            } else {
+                if a.1 == 0 {
+                    return Ordering::Less;
+                }
+                if b.1 == 0 {
+                    return Ordering::Greater;
+                }
+                return b.0.cmp(&a.0);
+            }
+        };
 
-    let mut ch: Vec<Point> = Vec::new();
-    let mut input_iter = input.into_iter();
+        input.sort_by(compare_points);
 
-    ch.push(input_iter.next().unwrap());
-    ch.push(input_iter.next().unwrap());
+        let mut ch: Vec<Point> = Vec::new();
+        let mut input_iter = input.into_iter();
 
-    for p in input_iter {
-        ch.push(p);
-        while ch.len() >= 3 && !left_turn(&ch[ch.len() - 3], &ch[ch.len() - 2], &ch[ch.len() - 1]) {
-            ch.swap_remove(ch.len() - 2);
+        ch.push(input_iter.next().unwrap());
+        ch.push(input_iter.next().unwrap());
+
+        for p in input_iter {
+            ch.push(p);
+            while ch.len() >= 3 && !Point::left_turn(&ch[ch.len() - 3], &ch[ch.len() - 2], &ch[ch.len() - 1]) {
+                ch.swap_remove(ch.len() - 2);
+            }
         }
-    }
 
-    ch.iter().map(|p| Point(p.0 + origin_x, p.1 + origin_y)).collect()
+        ch.iter().map(|p| Point(p.0 + origin_x, p.1 + origin_y)).collect()
+    }
 }
 
 fn main () -> io::Result<()> {
@@ -94,16 +95,15 @@ fn main () -> io::Result<()> {
         input.push(Point(x, y));
     }
 
-    let convex_hull = convex_hull(&input);
+    let convex_hull = Point::convex_hull(&input);
 
-    let initial_dist = max_y - min_y + max_x - min_y;
+    let infinity = 2 * (max_y - min_y + max_x - min_y);
     let threshold = 10000;
 
-    let initial_dist = initial_dist * 2;
     let mut near_distance_count = 0;
     for y in min_y..max_y {
         for x in min_x..max_x {
-            let mut min_dist = initial_dist;
+            let mut min_dist = infinity;
             let mut total_dist = 0;
             let mut min_dist_point: Option<Point> = None;
             let mut nonunique: bool = false;
@@ -143,7 +143,7 @@ fn main () -> io::Result<()> {
     }
 
     println!("Size of the largest area that isn't infinite: {}", areas.values().max().unwrap());
-    println!("Size of region with total distance below 10000: {}", near_distance_count);
+    println!("Size of region with total distance below {}: {}", threshold, near_distance_count);
 
     Ok(())
 }
