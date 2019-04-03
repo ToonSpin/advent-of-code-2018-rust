@@ -4,61 +4,22 @@ use std::io::prelude::*;
 extern crate regex;
 use regex::Regex;
 
-struct MarbleCircle {
-    circle: Vec<u32>,
-    current_index: usize,
-    next: u32,
+#[macro_use]
+extern crate intrusive_collections;
+use intrusive_collections::{LinkedList, LinkedListLink};
+
+struct Marble {
+    link: LinkedListLink,
+    value: u32,
 }
 
-impl MarbleCircle {
-    fn new() -> MarbleCircle {
-        MarbleCircle {
-            circle: vec![0],
-            current_index: 0,
-            next: 1,
-        }
-    }
+intrusive_adapter!(MarbleAdapter = Box<Marble>: Marble { link: LinkedListLink });
 
-    fn place(&mut self) -> u32 {
-        let mut score = 0;
-        if self.next % 23 == 0 {
-            score += self.next;
-            let mut remove_pos: usize = self.current_index;
-            while remove_pos < 7 {
-                remove_pos += self.circle.len();
-            }
-            remove_pos -= 7;
-            let removed_marble = self.circle.remove(remove_pos);
-            score += removed_marble;
-            self.current_index = remove_pos;
-        } else {
-            let new_pos = self.current_index + 2;
-            let mut new_pos: usize = new_pos % self.circle.len();
-            if new_pos == 0 {
-                new_pos = self.circle.len();
-            }
-
-            self.circle.insert(new_pos, self.next);
-            self.current_index = new_pos;
-        }
-        self.next += 1;
-        score
-    }
-}
-
-fn get_score(num_players: usize, max_marble: u32) -> u32 {
-    let mut circle = MarbleCircle::new();
-    let mut scores: Vec<u32> = Vec::with_capacity(num_players);
-
-    for _i in 0..num_players {
-        scores.push(0u32);
-    }
-
-    for i in 1..=max_marble {
-        scores[i as usize % num_players] += circle.place();
-    }
-
-    *scores.iter().max().unwrap()
+fn make_marble(m: u32) -> Box<Marble> {
+    Box::new(Marble {
+        link: LinkedListLink::new(),
+        value: m,
+    })
 }
 
 fn main() -> io::Result<()> {
@@ -73,13 +34,55 @@ fn main() -> io::Result<()> {
         }
     }
 
-    println!(
-        "The player with the best score scored: {}",
-        get_score(num_players, max_marble)
-    );
+    let mut scores: Vec<u32> = Vec::with_capacity(num_players);
+    for _i in 0..num_players {
+        scores.push(0u32);
+    }
+
+    let mut circle = LinkedList::new(MarbleAdapter::new());
+    circle.push_back(make_marble(0));
+    let mut cursor = circle.front_mut();
+
+    for current_marble in 1..=max_marble * 100 {
+        if current_marble == max_marble {
+            println!(
+                "The player with the best score scored: {}",
+                scores.iter().max().unwrap()
+            );
+        }
+
+        let mut score: u32 = 0;
+
+        if current_marble % 23 == 0 {
+            score += current_marble;
+
+            for _i in 0..7 {
+                cursor.move_prev();
+                if let None = cursor.get() {
+                    cursor.move_prev();
+                }
+            }
+
+            let m = cursor.get().unwrap();
+            score += m.value;
+
+            cursor.remove();
+        } else {
+            cursor.move_next();
+            if let None = cursor.get() {
+                cursor.move_next();
+            }
+
+            cursor.insert_after(make_marble(current_marble));
+            cursor.move_next();
+        }
+
+        scores[(current_marble as usize % num_players) as usize] += score;
+    }
+
     println!(
         "If the max marble were 100 times as large: {}",
-        get_score(num_players, max_marble * 100)
+        scores.iter().max().unwrap()
     );
 
     Ok(())
