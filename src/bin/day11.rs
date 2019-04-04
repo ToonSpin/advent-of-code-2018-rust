@@ -1,59 +1,51 @@
 use std::io;
 use std::io::prelude::*;
 
-use std::collections::HashMap;
-
 struct PowerGrid {
     grid: [i32; 90000],
-    memo: HashMap<usize, i32>,
 }
 
 impl PowerGrid {
     fn new(serial: i32) -> PowerGrid {
-        let mut grid: [i32; 90000] = [0; 90000];
-        for y in 0..300 {
+        let mut powerlevels: [i32; 90000] = [0; 90000];
+        for y in 0..300 as usize {
             let mut rack_id = 10;
 
-            for x in 0..300 {
+            for x in 0..300 as usize {
                 rack_id += 1;
 
-                let mut power_level = rack_id * (rack_id * (y + 1) + serial);
+                let mut power_level = rack_id * (rack_id * (y + 1) as i32 + serial);
                 power_level = power_level / 100 % 10 - 5;
 
-                grid[(y * 300 + x) as usize] = power_level;
+                powerlevels[y * 300 + x] = power_level;
             }
         }
 
-        PowerGrid {
-            grid: grid,
-            memo: HashMap::with_capacity(15252015),
+        let mut summed_area: [i32; 90000] = [0; 90000];
+        for y in 0..300 as usize {
+            for x in 0..300 as usize {
+                let a = powerlevels[y * 300 + x];
+                let b = if y > 0 { summed_area[(y - 1) * 300 + x] } else { 0 };
+                let c = if x > 0 { summed_area[y * 300 + x - 1] } else { 0 };
+                let d = if x > 0 && y > 0 { summed_area[(y - 1) * 300 + x - 1] } else { 0 };
+
+                summed_area[y * 300 + x] = a + b + c - d;
+            }
         }
+
+        PowerGrid { grid: summed_area }
     }
 
     fn get(&self, x: usize, y: usize) -> i32 {
-        self.grid[(y - 1) * 300 + x - 1]
+        self.grid[y * 300 + x]
     }
 
     fn square(&mut self, x: usize, y: usize, side: usize) -> i32 {
-        if let Some(sum) = self.memo.get(&(side * 90000 + y * 300 + x)) {
-            return *sum;
-        }
-
-        let mut total = 0;
-        if side <= 3 {
-            for q in y..y + side {
-                for p in x..x + side {
-                    total += self.get(p, q);
-                }
-            }
-        } else {
-            total = self.square(x, y, side - 1) + self.square(x + 1, y + 1, side - 1)
-                - self.square(x + 1, y + 1, side - 2)
-                + self.get(x + side - 1, y)
-                + self.get(x, y + side - 1);
-        }
-        self.memo.insert(side * 90000 + y * 300 + x, total);
-        total
+        let a = self.get(x + side - 1, y + side - 1);
+        let b = if x > 0 { self.get(x - 1, y + side - 1) } else { 0 };
+        let c = if y > 0 { self.get(x + side - 1, y - 1) } else { 0 };
+        let d = if x > 0 && y > 0 { self.get(x - 1, y - 1) } else { 0 };
+        a - b - c + d
     }
 }
 
@@ -71,8 +63,8 @@ fn main() -> io::Result<()> {
     let mut max_square = (0, 0, 0);
 
     for s in 3..=300 as usize {
-        for y in 1..=300 - s + 1 as usize {
-            for x in 1..=300 - s + 1 as usize {
+        for y in 0..300 - s as usize {
+            for x in 0..300 - s as usize {
                 let square_sum = grid.square(x, y, s);
 
                 if square_sum > max_sum {
@@ -88,11 +80,14 @@ fn main() -> io::Result<()> {
 
     println!(
         "The X,Y coordinate of the most powerful 3x3 square: ({},{})",
-        max_3_square.0, max_3_square.1
+        max_3_square.0 + 1,
+        max_3_square.1 + 1
     );
     println!(
         "The X,Y,size identifier of the square with the largest total power: ({},{},{})",
-        max_square.0, max_square.1, max_square.2
+        max_square.0 + 1,
+        max_square.1 + 1,
+        max_square.2
     );
 
     Ok(())
