@@ -24,12 +24,18 @@ impl PowerGrid {
         let mut summed_area: [i32; 90000] = [0; 90000];
         for y in 0..300 as usize {
             for x in 0..300 as usize {
-                let a = powerlevels[y * 300 + x];
-                let b = if y > 0 { summed_area[(y - 1) * 300 + x] } else { 0 };
-                let c = if x > 0 { summed_area[y * 300 + x - 1] } else { 0 };
-                let d = if x > 0 && y > 0 { summed_area[(y - 1) * 300 + x - 1] } else { 0 };
+                let mut sum = powerlevels[y * 300 + x];
+                if x > 0 {
+                    sum += summed_area[y * 300 + x - 1]
+                }
+                if y > 0 {
+                    sum += summed_area[(y - 1) * 300 + x]
+                }
+                if x > 0 && y > 0 {
+                    sum -= summed_area[(y - 1) * 300 + x - 1]
+                }
 
-                summed_area[y * 300 + x] = a + b + c - d;
+                summed_area[y * 300 + x] = sum;
             }
         }
 
@@ -41,11 +47,17 @@ impl PowerGrid {
     }
 
     fn square(&mut self, x: usize, y: usize, side: usize) -> i32 {
-        let a = self.get(x + side - 1, y + side - 1);
-        let b = if x > 0 { self.get(x - 1, y + side - 1) } else { 0 };
-        let c = if y > 0 { self.get(x + side - 1, y - 1) } else { 0 };
-        let d = if x > 0 && y > 0 { self.get(x - 1, y - 1) } else { 0 };
-        a - b - c + d
+        let mut sum = self.get(x + side - 1, y + side - 1);
+        if x > 0 {
+            sum -= self.get(x - 1, y + side - 1)
+        }
+        if y > 0 {
+            sum -= self.get(x + side - 1, y - 1)
+        }
+        if x > 0 && y > 0 {
+            sum += self.get(x - 1, y - 1)
+        }
+        sum
     }
 }
 
