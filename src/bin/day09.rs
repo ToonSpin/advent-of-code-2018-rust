@@ -4,22 +4,68 @@ use std::io::prelude::*;
 extern crate regex;
 use regex::Regex;
 
-#[macro_use]
-extern crate intrusive_collections;
-use intrusive_collections::{LinkedList, LinkedListLink};
-
 struct Marble {
-    link: LinkedListLink,
     value: u32,
+    next: usize,
+    prev: usize,
 }
 
-intrusive_adapter!(MarbleAdapter = Box<Marble>: Marble { link: LinkedListLink });
+struct MarbleCircle {
+    circle: Vec<Marble>,
+    current_marble: usize,
+}
 
-fn make_marble(m: u32) -> Box<Marble> {
-    Box::new(Marble {
-        link: LinkedListLink::new(),
-        value: m,
-    })
+impl MarbleCircle {
+    fn new() -> MarbleCircle {
+        let mut v = Vec::with_capacity(8388608);
+        v.push(Marble {
+            value: 0,
+            next: 0,
+            prev: 0,
+        });
+        MarbleCircle {
+            circle: v,
+            current_marble: 0
+        }
+    }
+
+    fn clockwise(&mut self, n: u8) {
+        for _i in 0..n {
+            self.current_marble = self.circle[self.current_marble].next;
+        }
+    }
+
+    fn counterclockwise(&mut self, n: u8) {
+        for _i in 0..n {
+            self.current_marble = self.circle[self.current_marble].prev;
+        }
+    }
+
+    fn insert_after_current(&mut self, value: u32) {
+        let next_marble: usize = self.circle[self.current_marble].next;
+        let new_marble: usize = self.circle.len();
+
+        self.circle[self.current_marble].next = new_marble;
+        self.circle[next_marble].prev = new_marble;
+
+        self.circle.push({
+            Marble {
+                value,
+                prev: self.current_marble,
+                next: next_marble,
+            }
+        })
+    }
+
+    fn remove_before_current(&mut self) -> u32 {
+        let marble_to_remove: usize = self.circle[self.current_marble].prev;
+        let new_prev_marble: usize = self.circle[marble_to_remove].prev;
+
+        self.circle[self.current_marble].prev = new_prev_marble;
+        self.circle[new_prev_marble].next = self.current_marble;
+
+        self.circle[marble_to_remove].value
+    }
 }
 
 fn main() -> io::Result<()> {
@@ -33,18 +79,15 @@ fn main() -> io::Result<()> {
             max_marble = caps[2].parse().unwrap();
         }
     }
-
     let mut scores: Vec<u32> = Vec::with_capacity(num_players);
     for _i in 0..num_players {
         scores.push(0u32);
     }
 
-    let mut circle = LinkedList::new(MarbleAdapter::new());
-    circle.push_back(make_marble(0));
-    let mut cursor = circle.front_mut();
+    let mut circle = MarbleCircle::new();
 
-    for current_marble in 1..=max_marble * 100 {
-        if current_marble == max_marble {
+    for next_marble in 1..=max_marble * 100 {
+        if next_marble == max_marble {
             println!(
                 "The player with the best score scored: {}",
                 scores.iter().max().unwrap()
@@ -53,31 +96,17 @@ fn main() -> io::Result<()> {
 
         let mut score: u32 = 0;
 
-        if current_marble % 23 == 0 {
-            score += current_marble;
-
-            for _i in 0..7 {
-                cursor.move_prev();
-                if let None = cursor.get() {
-                    cursor.move_prev();
-                }
-            }
-
-            let m = cursor.get().unwrap();
-            score += m.value;
-
-            cursor.remove();
+        if next_marble % 23 == 0 {
+            score += next_marble;
+            circle.counterclockwise(6);
+            score += circle.remove_before_current();
         } else {
-            cursor.move_next();
-            if let None = cursor.get() {
-                cursor.move_next();
-            }
-
-            cursor.insert_after(make_marble(current_marble));
-            cursor.move_next();
+            circle.clockwise(1);
+            circle.insert_after_current(next_marble);
+            circle.clockwise(1);
         }
 
-        scores[(current_marble as usize % num_players) as usize] += score;
+        scores[(next_marble as usize % num_players) as usize] += score;
     }
 
     println!(
