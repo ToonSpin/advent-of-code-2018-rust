@@ -36,15 +36,16 @@ fn main() -> io::Result<()> {
 
     println!("Length after reaction: {}", react(Vec::from(units.clone())));
 
+    let mut results = Vec::new();
     for unit in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".as_bytes() {
         let mut stripped = Vec::from(units.clone());
         stripped.retain(|u| *u != *unit && *u != *unit + 32);
-        println!(
-            "Length after reaction after stripping {}: {}",
-            *unit as char,
-            react(stripped)
-        );
+        results.push((*unit as char, react(stripped)));
     }
+
+    results.sort_by_key(|t| t.1);
+    let (unit, length) = results.first().unwrap();
+    println!("Length after reaction after stripping {}: {}", *unit, length);
 
     Ok(())
 }
