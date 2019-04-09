@@ -45,7 +45,10 @@ fn main() -> io::Result<()> {
 
     results.sort_by_key(|t| t.1);
     let (unit, length) = results.first().unwrap();
-    println!("Length after reaction after stripping {}: {}", *unit, length);
+    println!(
+        "Length after reaction after stripping {}: {}",
+        *unit, length
+    );
 
     Ok(())
 }

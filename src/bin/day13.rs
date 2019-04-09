@@ -33,7 +33,6 @@ impl PartialEq for TurnDirection {
     }
 }
 
-
 #[derive(Eq)]
 struct Cart {
     pos: (u32, u32),
@@ -70,10 +69,18 @@ impl Cart {
 
     fn move_forward(&mut self) -> () {
         match self.dir {
-            Direction::North => { self.pos.1 -= 1; },
-            Direction::East  => { self.pos.0 += 1; },
-            Direction::South => { self.pos.1 += 1; },
-            Direction::West  => { self.pos.0 -= 1; },
+            Direction::North => {
+                self.pos.1 -= 1;
+            }
+            Direction::East => {
+                self.pos.0 += 1;
+            }
+            Direction::South => {
+                self.pos.1 += 1;
+            }
+            Direction::West => {
+                self.pos.0 -= 1;
+            }
         }
     }
 
@@ -109,9 +116,7 @@ impl PartialEq for Cart {
 impl Ord for Cart {
     fn cmp(&self, other: &Cart) -> Ordering {
         match self.pos.1.cmp(&other.pos.1) {
-            Ordering::Equal => {
-                self.pos.0.cmp(&other.pos.0)
-            },
+            Ordering::Equal => self.pos.0.cmp(&other.pos.0),
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
         }
@@ -167,7 +172,7 @@ impl Track {
         Track {
             carts,
             track,
-            current_cart_index: 0
+            current_cart_index: 0,
         }
     }
 
@@ -221,28 +226,24 @@ impl Track {
         match self.track[cart.pos.1 as usize][cart.pos.0 as usize] as char {
             '+' => {
                 cart.process_crossing();
-            },
-            '/' => {
-                match cart.dir {
-                    Direction::West | Direction::East => {
-                        cart.turn_left();
-                    },
-                    Direction::North | Direction::South => {
-                        cart.turn_right();
-                    },
+            }
+            '/' => match cart.dir {
+                Direction::West | Direction::East => {
+                    cart.turn_left();
+                }
+                Direction::North | Direction::South => {
+                    cart.turn_right();
                 }
             },
-            '\\' => {
-                match cart.dir {
-                    Direction::West | Direction::East => {
-                        cart.turn_right();
-                    },
-                    Direction::North | Direction::South => {
-                        cart.turn_left();
-                    },
+            '\\' => match cart.dir {
+                Direction::West | Direction::East => {
+                    cart.turn_right();
+                }
+                Direction::North | Direction::South => {
+                    cart.turn_left();
                 }
             },
-            _ => {}, 
+            _ => {}
         }
         cart.move_forward();
 
@@ -265,7 +266,10 @@ fn main() -> io::Result<()> {
         if track.end_of_tick() {
             if track.carts.len() == 1 {
                 let cart = track.carts.pop().unwrap();
-                println!("Position of the last cart at the end of the tick: {},{}", cart.pos.0, cart.pos.1);
+                println!(
+                    "Position of the last cart at the end of the tick: {},{}",
+                    cart.pos.0, cart.pos.1
+                );
                 break;
             }
         }

@@ -25,7 +25,7 @@ impl MarbleCircle {
         });
         MarbleCircle {
             circle: v,
-            current_marble: 0
+            current_marble: 0,
         }
     }
 
