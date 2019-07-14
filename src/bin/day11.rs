@@ -46,7 +46,7 @@ impl PowerGrid {
         self.grid[y * 300 + x]
     }
 
-    fn square(&mut self, x: usize, y: usize, side: usize) -> i32 {
+    fn square(&self, x: usize, y: usize, side: usize) -> i32 {
         let mut sum = self.get(x + side - 1, y + side - 1);
         if x > 0 {
             sum -= self.get(x - 1, y + side - 1)
@@ -68,7 +68,7 @@ fn main() -> io::Result<()> {
         break;
     }
 
-    let mut grid = PowerGrid::new(input);
+    let grid = PowerGrid::new(input);
 
     let mut max_sum = -10000;
     let mut max_3_square = (0, 0);
