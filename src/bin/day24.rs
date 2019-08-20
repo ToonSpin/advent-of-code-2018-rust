@@ -245,15 +245,22 @@ fn main() -> io::Result<()> {
     let (_found_immune_system, found_infection) = units_left_after_battle(groups.clone(), 0);
     println!("Number of units left after pre-boost battle: {}", found_infection);
 
-    let mut boost = 0;
-    loop {
-        let (found_immune_system, found_infection) = units_left_after_battle(groups.clone(), boost);
+    let mut min_boost = 0;
+    let mut max_boost = 128;
+
+    let mut boost;
+    while max_boost - min_boost > 1 {
+        boost = (min_boost + max_boost) / 2;
+        let (_found_immune_system, found_infection) = units_left_after_battle(groups.clone(), boost);
         if found_infection == 0 {
-            println!("Number of units left after post-boost battle: {}", found_immune_system);
-            break;
+            max_boost = boost;
+        } else {
+            min_boost = boost;
         }
-        boost += 1;
     }
+
+    let (found_immune_system, _found_infection) = units_left_after_battle(groups.clone(), max_boost);
+    println!("Number of units left after post-boost battle: {}", found_immune_system);
 
     Ok(())
 }
